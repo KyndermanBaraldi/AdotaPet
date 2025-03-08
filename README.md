@@ -24,7 +24,7 @@ Este projeto foi desenvolvido como requisito da disciplina **Projeto Integrador 
   - `/frontend` → Next.js
   - `/docs` → Documentação
 - [ ] Instalar e configurar FastAPI
-- [ ] Instalar e configurar Next.js
+- [x] Instalar e configurar Next.js
 - [ ] **Deploy do frontend na Vercel**
 - [ ] **Deploy do backend na VPS da Oracle Cloud (adotapet-api.kynderman.com.br)**
 
