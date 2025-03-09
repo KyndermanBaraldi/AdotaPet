@@ -169,3 +169,9 @@ poetry.toml
 
 # LSP config files
 pyrightconfig.json
+
+logs/
+traefik/
+traefik/acme/acme.json
+data/
+data/postgres

@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # Traefik - Proxy Reverso e Gerenciador SSL
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: always
+    env_file:
+      - .env
+    command:
+      - "--global.checkNewVersion=true"
+      - "--global.sendAnonymousUsage=false"
+      - "--log.level=INFO"
+      - "--log.format=common"
+      - "--accesslog.format=common"
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/acme:/etc/traefik/acme
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_USER}:${TRAEFIK_DASHBOARD_PASSWORD_HASH}"
+
+  # Serviço da aplicação Python
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: python_app
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - db
+    networks:
+      - app-network
+    volumes:
+      - ./src:/app/src
+      - ./static:/app/static
+      - ./media:/app/media
+      - ./logs:/app/logs
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`)"
+      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.routers.app.tls=true"
+      - "traefik.http.routers.app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.app.loadbalancer.server.port=8000"
+      - "traefik.http.routers.app-http.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`)"
+      - "traefik.http.routers.app-http.entrypoints=web"
+      - "traefik.http.routers.app-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.gzip.compress=true"
+      - "traefik.http.routers.app.middlewares=gzip"
+
+  # Serviço para arquivos estáticos
+  static:
+    image: nginx:alpine
+    container_name: static_files
+    env_file:
+      - .env
+    volumes:
+      - ./static:/usr/share/nginx/html/static
+      - ./media:/usr/share/nginx/html/media
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.static.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`) && (PathPrefix(`/static`) || PathPrefix(`/media`))"
+      - "traefik.http.routers.static.entrypoints=websecure"
+      - "traefik.http.routers.static.tls=true"
+      - "traefik.http.services.static.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.static-cache.headers.customResponseHeaders.Cache-Control=max-age=2592000"
+      - "traefik.http.routers.static.middlewares=static-cache,gzip"
+
+  # Serviço do banco de dados PostgreSQL
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/postgres
