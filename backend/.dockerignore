@@ -1,0 +1,23 @@
+# Ignorar ambientes virtuais
+venv/
+**/.venv/
+
+# Ignorar pastas de controle de versão
+.git/
+**/.git/
+
+# Ignorar arquivos de configuração do editor
+.idea/
+.vscode/
+
+# Ignorar arquivos de cache e compilação do Python
+__pycache__/
+*.pyc
+
+# Ignorar diretórios e arquivos de distribuição
+build/
+dist/
+*.egg-info/
+
+# Ignorar arquivos de configuração específicos
+*.env
