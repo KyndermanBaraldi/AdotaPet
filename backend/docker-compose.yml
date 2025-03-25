@@ -1,4 +1,4 @@
-# version: '3.9'
+version: '3.9'
 
 services:
   traefik:
@@ -41,7 +41,7 @@ services:
       - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_USER}:${TRAEFIK_DASHBOARD_PASSWORD_HASH}"
 
   web:
-    build: ./src
+    build: ./
     env_file:
       - .env
     environment:
