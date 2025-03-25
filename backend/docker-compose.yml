@@ -1,7 +1,6 @@
-version: '3.8'
+# version: '3.9'
 
 services:
-  # Traefik - Proxy Reverso e Gerenciador SSL
   traefik:
     image: traefik:v2.11
     container_name: traefik
@@ -41,30 +40,33 @@ services:
       - "traefik.http.routers.dashboard.middlewares=auth"
       - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_USER}:${TRAEFIK_DASHBOARD_PASSWORD_HASH}"
 
-  # Serviço da aplicação Python
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - APP_PORT=${APP_PORT}
-    container_name: python_app
-    restart: always
+  web:
+    build: ./src
     env_file:
       - .env
     environment:
-      - PYTHONUNBUFFERED=1
-      - APP_PORT=${APP_PORT}
-    depends_on:
-      - db
+      DJANGO_ENV: ${DJANGO_ENV}
+      DJANGO_SETTINGS_MODULE: core.settings
+      APP_PORT: ${APP_PORT}
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      GDAL_LIBRARY_PATH: ${GDAL_LIBRARY_PATH}
+      GEOS_LIBRARY_PATH: ${GEOS_LIBRARY_PATH}
+    volumes:
+      - ./src:/app/src:Z
+      - static_volume:/app/static
+      - media_volume:/app/media
     networks:
       - traefik_network
       - internal_network
-    volumes:
-      - ./src:/app/src
-      - ./static:/app/static
-      - ./media:/app/media
-      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.app.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`)"
@@ -79,36 +81,38 @@ services:
       - "traefik.http.middlewares.gzip.compress=true"
       - "traefik.http.routers.app.middlewares=gzip"
 
-  # Serviço para arquivos estáticos
-  static:
-    image: nginx:1.25-alpine
-    container_name: static_files
-    env_file:
-      - .env
-    volumes:
-      - ./static:/usr/share/nginx/html/static
-      - ./media:/usr/share/nginx/html/media
-    networks:
-      - traefik_network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.static.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`) && (PathPrefix(`/static`) || PathPrefix(`/media`))"
-      - "traefik.http.routers.static.entrypoints=websecure"
-      - "traefik.http.routers.static.tls=true"
-      - "traefik.http.services.static.loadbalancer.server.port=80"
-      - "traefik.http.middlewares.static-cache.headers.customResponseHeaders.Cache-Control=max-age=2592000"
-      - "traefik.http.routers.static.middlewares=static-cache,gzip"
-
-  # Serviço do banco de dados PostgreSQL
   db:
-    image: postgres:15-alpine
-    container_name: postgres_db
-    restart: unless-stopped
+    image: postgis/postgis:14-3.3
+    container_name: postgis
     env_file: .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - internal_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  static:
+    image: nginx:1.25-alpine
+    volumes:
+      - static_volume:/usr/share/nginx/html/static
+      - media_volume:/usr/share/nginx/html/media
+    networks:
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.static.rule=Host(`${DOMAIN}`, `www.${DOMAIN}`) && (PathPrefix(`/static`) || PathPrefix(`/media`))"
+      - "traefik.http.routers.static.entrypoints=websecure"
+      - "traefik.http.routers.static.tls=true"
+      - "traefik.http.services.static.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.static-headers.headers.customResponseHeaders.Cache-Control=max-age=31536000"
 
 networks:
   traefik_network:
@@ -119,3 +123,5 @@ networks:
 
 volumes:
   postgres_data:
+  static_volume:
+  media_volume:

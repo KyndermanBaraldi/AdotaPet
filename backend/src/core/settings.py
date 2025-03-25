@@ -17,29 +17,40 @@ from os import getenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 env_path = Path.joinpath(BASE_DIR.parent, '.env')
-load_dotenv(dotenv_path=env_path)
+
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = SECRET_KEY = getenv("SECRET_KEY", 'django-insecure-p_06*@43yjf_llkiyy@@^h2s!bduf^bjv3gnh^2#86dhq-c*^4')
+SECRET_KEY = getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = getenv("ALLOWED_HOSTS").split(',')
 
+domain = getenv("DOMAIN")
+www_domain = getenv("WWW_DOMAIN")
+
+CSRF_TRUSTED_ORIGINS = [f'https://{domain}', 'https://{www_domain}']
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'ongs',
     'animals'
 ]
@@ -78,13 +89,22 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use o backend geoespacial do PostgreSQL
+        'NAME': getenv('DB_NAME'),  # Nome do banco de dados
+        'USER': getenv('DB_USER'),  # Usuário do banco de dados
+        'PASSWORD': getenv('DB_PASSWORD'),  # Senha do banco de dados
+        'HOST': getenv('DB_HOST'),  # Endereço do servidor de banco de dados
+        'PORT': getenv('DB_PORT'),  # Porta do banco de dados (5432 para PostgreSQL)
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -120,7 +140,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = '/app/static'  # Caminho no container onde o collectstatic salvará os arquivos (deve corresponder ao volume do Docker)
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/app/media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
