@@ -51,6 +51,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    'cloudinary_storage',
+    'cloudinary',
+    'leaflet',
     'ongs',
     'animals'
 ]
@@ -150,3 +153,11 @@ MEDIA_ROOT = '/app/media'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': getenv('CLOUDINARY_API_SECRET')
+}
+# Configuração de mídia
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
