@@ -1,13 +1,14 @@
 # Stage 1: Base build stage
 FROM python:3.13.2-slim AS builder
 
-# RUN apt-get update && apt-get install -y \
-#     gcc \
-#     gdal-bin \
-#     libgdal-dev \
-#     python3-gdal \
-#     gettext \
-#     && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    gcc \
+    gdal-bin \
+    libgdal-dev \
+    python3-gdal \
+    gettext \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create the app directory
 RUN mkdir /app
 
@@ -30,13 +31,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Stage 2: Production stage
 FROM python:3.13.2-slim
 
-# RUN apt-get update && apt-get install -y \
-#     gcc \
-#     gdal-bin \
-#     libgdal-dev \
-#     python3-gdal \
-#     gettext \
-#     && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    gcc \
+    gdal-bin \
+    libgdal-dev \
+    python3-gdal \
+    gettext \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -r appuser && \
     mkdir /app && \
@@ -50,7 +51,7 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 WORKDIR /app
 
 # Copy application code
-COPY --chown=appuser:appuser . .
+COPY --chown=appuser:appuser ./src .
 
 # Set environment variables to optimize Python
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -63,4 +64,4 @@ USER appuser
 EXPOSE 8000
 
 # Start the application using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "src.core.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "core.wsgi:application"]
