@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 from os import getenv
+from .styles import JAZZMIN_SETTINGS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,7 +36,11 @@ ALLOWED_HOSTS = getenv("ALLOWED_HOSTS").split(',')
 domain = getenv("DOMAIN")
 www_domain = getenv("WWW_DOMAIN")
 
-CSRF_TRUSTED_ORIGINS = [f'https://{domain}', 'https://{www_domain}']
+CSRF_TRUSTED_ORIGINS = [
+    f'https://{domain}', f'http://{domain}',
+    f'https://{www_domain}', f'http://{www_domain}'
+]
+
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
