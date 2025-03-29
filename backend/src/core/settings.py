@@ -29,16 +29,15 @@ if env_path.exists():
 SECRET_KEY = getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = getenv("DEBUG")
 
-ALLOWED_HOSTS = getenv("ALLOWED_HOSTS").split(',')
+ALLOWED_HOSTS = ['*',]
 
 domain = getenv("DOMAIN")
 www_domain = getenv("WWW_DOMAIN")
 
 CSRF_TRUSTED_ORIGINS = [
-    f'https://{domain}', f'http://{domain}',
-    f'https://{www_domain}', f'http://{www_domain}'
+    f'https://*', f'http://*'
 ]
 
 CSRF_COOKIE_SECURE = True
@@ -46,7 +45,6 @@ SESSION_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
-
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -60,7 +58,8 @@ INSTALLED_APPS = [
     'cloudinary',
     'leaflet',
     'ongs',
-    'animals'
+    'animals',
+    'user',
 ]
 
 MIDDLEWARE = [
@@ -97,12 +96,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use o backend geoespacial do PostgreSQL

@@ -1,7 +1,7 @@
 # api.py
 from http import HTTPStatus
 from ninja import NinjaAPI, Router
-
+from user.api import router as user_router
 from .schemas import StatusSchema
 
 api = NinjaAPI(title='AdotaPet Api', version='1.0.0', description='API para AdotaPet')
@@ -9,6 +9,7 @@ api = NinjaAPI(title='AdotaPet Api', version='1.0.0', description='API para Adot
 router = Router()
 
 api.add_router('v1', router)
+api.add_router('v1/users/', user_router)
 
 @router.get(
     'healthcheck',
