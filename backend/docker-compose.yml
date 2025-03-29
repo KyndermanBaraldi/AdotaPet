@@ -40,14 +40,14 @@ services:
       - "traefik.http.routers.dashboard.middlewares=auth"
       - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_USER}:${TRAEFIK_DASHBOARD_PASSWORD_HASH}"
 
-  web:
+  django:
     build: ./
     env_file:
       - .env
     environment:
       DJANGO_ENV: ${DJANGO_ENV}
       DJANGO_SETTINGS_MODULE: core.settings
-      APP_PORT: ${APP_PORT}
+      APP_PORT: 8000
       DB_HOST: db
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
@@ -57,29 +57,35 @@ services:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       GDAL_LIBRARY_PATH: ${GDAL_LIBRARY_PATH}
       GEOS_LIBRARY_PATH: ${GEOS_LIBRARY_PATH}
+
     volumes:
       - ./src:/app:Z
       - static_volume:/app/static
       - media_volume:/app/media
     networks:
       - traefik_network
-      - internal_network
+      # - internal_network
     depends_on:
       db:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`)"
-      - "traefik.http.routers.app.entrypoints=websecure"
-      - "traefik.http.routers.app.tls=true"
-      - "traefik.http.routers.app.tls.certresolver=letsencrypt"
-      - "traefik.http.services.app.loadbalancer.server.port=${APP_PORT}"
-      - "traefik.http.routers.app-http.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`)"
-      - "traefik.http.routers.app-http.entrypoints=web"
-      - "traefik.http.routers.app-http.middlewares=redirect-to-https"
+
+      # router
+      - "traefik.http.routers.django.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`)"
+      - "traefik.http.routers.django.entrypoints=websecure"
+      - "traefik.http.routers.django.tls=true"
+      - "traefik.http.routers.django.tls.certresolver=letsencrypt"
+      - "traefik.http.services.django.loadbalancer.server.port=8000"
+      # router HTTP
+      - "traefik.http.routers.django-http.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`)"
+      - "traefik.http.routers.django-http.entrypoints=web"
+      - "traefik.http.routers.django-http.middlewares=redirect-to-https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+      # gzip
       - "traefik.http.middlewares.gzip.compress=true"
-      - "traefik.http.routers.app.middlewares=gzip"
+      - "traefik.http.routers.django.middlewares=gzip"
 
   db:
     image: postgis/postgis:14-3.3
@@ -92,7 +98,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - internal_network
+      - traefik_network
+      # - internal_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
@@ -117,9 +124,9 @@ services:
 networks:
   traefik_network:
     driver: bridge
-  internal_network:
-    driver: bridge
-    internal: true
+  # internal_network:
+  #   driver: bridge
+  #   internal: true
 
 volumes:
   postgres_data:
