@@ -9,11 +9,6 @@ from django.contrib.auth.models import User
 from pydantic import Field
 
 class UserCreateSchema(ModelSchema):
-    username: str = Field(..., alias="Nome de usuário")
-    email: str = Field(..., alias="E-mail")
-    password: str = Field(..., alias="Senha")
-    first_name: str = Field(..., alias="Nome")
-    last_name: str = Field(..., alias="Sobrenome")
 
     class Config:
         model = User
