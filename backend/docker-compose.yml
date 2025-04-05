@@ -33,12 +33,27 @@ services:
       - traefik_network
     labels:
       - "traefik.enable=true"
+
+      # Painel Traefik (opcional)
       - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.dashboard.middlewares=auth"
       - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_USER}:${TRAEFIK_DASHBOARD_PASSWORD_HASH}"
+
+
+      # Redireciona tudo, exceto /admin, /api, /static e /media
+      - "traefik.http.routers.vercel-redirect.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`, `/api`, `/static`, `/media`)"
+      - "traefik.http.routers.vercel-redirect.entrypoints=websecure"
+      - "traefik.http.routers.vercel-redirect.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.vercel-redirect.priority=1"
+      - "traefik.http.routers.vercel-redirect.middlewares=vercel-redirect"
+
+      # Middleware para redirecionar mantendo o caminho
+      - "traefik.http.middlewares.vercel-redirect.redirectregex.regex=^https://[^/]+(/.*)"
+      - "traefik.http.middlewares.vercel-redirect.redirectregex.replacement=https://adota-pet-eta.vercel.app/$${1}"
+      - "traefik.http.middlewares.vercel-redirect.redirectregex.permanent=true"
 
   django:
     build: ./
@@ -57,35 +72,35 @@ services:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       GDAL_LIBRARY_PATH: ${GDAL_LIBRARY_PATH}
       GEOS_LIBRARY_PATH: ${GEOS_LIBRARY_PATH}
-
     volumes:
       - ./src:/app:Z
       - static_volume:/app/static
       - media_volume:/app/media
     networks:
       - traefik_network
-      # - internal_network
     depends_on:
       db:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
 
-      # router
-      - "traefik.http.routers.django.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`)"
+      # HTTPS - apenas /admin e /api
+      - "traefik.http.routers.django.rule=Host(`${DOMAIN}`) && (PathPrefix(`/admin`) || PathPrefix(`/api`))"
       - "traefik.http.routers.django.entrypoints=websecure"
       - "traefik.http.routers.django.tls=true"
       - "traefik.http.routers.django.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.django.priority=20"
       - "traefik.http.services.django.loadbalancer.server.port=8000"
-      # router HTTP
-      - "traefik.http.routers.django-http.rule=Host(`${DOMAIN}`,`${WWW_DOMAIN}`)"
+      - "traefik.http.routers.django.middlewares=gzip"
+
+      # Redirecionamento HTTP → HTTPS
+      - "traefik.http.routers.django-http.rule=Host(`${DOMAIN}`) && (PathPrefix(`/admin`) || PathPrefix(`/api`))"
       - "traefik.http.routers.django-http.entrypoints=web"
       - "traefik.http.routers.django-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
-      # gzip
+      # Middlewares
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.middlewares.gzip.compress=true"
-      - "traefik.http.routers.django.middlewares=gzip"
 
   db:
     image: postgis/postgis:14-3.3
@@ -99,7 +114,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - traefik_network
-      # - internal_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
@@ -115,7 +129,7 @@ services:
       - traefik_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.static.rule=Host(`${DOMAIN}`, `www.${DOMAIN}`) && (PathPrefix(`/static`) || PathPrefix(`/media`))"
+      - "traefik.http.routers.static.rule=Host(`${DOMAIN}`) && (PathPrefix(`/static`) || PathPrefix(`/media`))"
       - "traefik.http.routers.static.entrypoints=websecure"
       - "traefik.http.routers.static.tls=true"
       - "traefik.http.services.static.loadbalancer.server.port=80"
@@ -124,11 +138,10 @@ services:
 networks:
   traefik_network:
     driver: bridge
-  # internal_network:
-  #   driver: bridge
-  #   internal: true
 
 volumes:
   postgres_data:
   static_volume:
   media_volume:
+
+
