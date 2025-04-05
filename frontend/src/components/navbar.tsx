@@ -21,9 +21,12 @@ export function Navbar() {
                         <Button asChild>
                             <Link href="/cadastro">Cadastre-se</Link>
                         </Button>
+                        <Button variant="outline" asChild>
+                            <Link href="/login">Login</Link>
+                        </Button>
                     </div>
                 </div>
             </div>
         </nav>
     )
-} 
+}
