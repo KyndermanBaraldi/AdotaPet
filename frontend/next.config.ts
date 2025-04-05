@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/login',
-        destination: 'https://www.adotapet.kynderman.com.br/admin/',
+        destination: 'https://adotapet.kynderman.com.br/admin/',
         statusCode: 301,
       },
     ];
