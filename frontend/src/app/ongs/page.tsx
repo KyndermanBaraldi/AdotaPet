@@ -4,8 +4,7 @@ import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Search, Mail, Phone, MapPin } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Search, MapPin, Mail, Phone } from "lucide-react"
 import { OngSchema } from "@/types/api"
 import api from "@/lib/axios"
 import { toast } from "sonner"
@@ -18,7 +17,7 @@ export default function OngsPage() {
 
     async function buscarOngs() {
         if (!cidade || !estado) {
-            toast.error("Por favor, preencha cidade e estado")
+            toast.error("Por favor, preencha a cidade e o estado.")
             return
         }
 
@@ -31,9 +30,13 @@ export default function OngsPage() {
                 }
             })
             setOngs(response.data)
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Erro ao buscar ONGs:", error)
-            toast.error(error.response?.data?.message || "Erro ao buscar ONGs. Tente novamente.")
+            if (error instanceof Error) {
+                toast.error(error.message || "Erro ao buscar ONGs. Tente novamente.")
+            } else {
+                toast.error("Erro ao buscar ONGs. Tente novamente.")
+            }
         } finally {
             setLoading(false)
         }
@@ -41,7 +44,7 @@ export default function OngsPage() {
 
     return (
         <main className="container mx-auto px-4 py-8">
-            <h1 className="text-4xl font-bold mb-8">Encontre ONGs</h1>
+            <h1 className="text-4xl font-bold mb-8">Encontre uma ONG</h1>
 
             {/* Seção de Busca */}
             <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
@@ -55,7 +58,6 @@ export default function OngsPage() {
                                 value={cidade}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCidade(e.target.value)}
                                 className="pl-10"
-                                required
                             />
                         </div>
                     </div>
@@ -68,14 +70,17 @@ export default function OngsPage() {
                                 value={estado}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEstado(e.target.value)}
                                 className="pl-10"
-                                required
                             />
                         </div>
                     </div>
                     <div className="flex items-end">
-                        <Button onClick={buscarOngs} disabled={loading} className="w-full">
+                        <Button
+                            onClick={buscarOngs}
+                            disabled={loading}
+                            className="flex-1"
+                        >
                             <Search className="mr-2 h-4 w-4" />
-                            {loading ? "Buscando..." : "Buscar ONGs"}
+                            {loading ? "Buscando..." : "Buscar"}
                         </Button>
                     </div>
                 </div>
@@ -86,30 +91,26 @@ export default function OngsPage() {
                 {ongs.map((ong) => (
                     <Card key={ong.name} className="hover:shadow-md transition-shadow">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                {ong.name}
-                            </CardTitle>
+                            <CardTitle>{ong.name}</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2 text-sm">
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <MapPin className="h-4 w-4" />
-                                    <span>
-                                        {ong.address_line1}, {ong.address_number}
-                                        <br />
-                                        {ong.neighborhood}
-                                        <br />
-                                        {ong.city}, {ong.state} - {ong.postal_code}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Phone className="h-4 w-4" />
-                                    <span>{ong.phone}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Mail className="h-4 w-4" />
-                                    <span>{ong.email}</span>
-                                </div>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <MapPin className="h-4 w-4" />
+                                <span>
+                                    {ong.address_line1}, {ong.address_number}
+                                    <br />
+                                    {ong.neighborhood}
+                                    <br />
+                                    {ong.city}, {ong.state} - {ong.postal_code}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Phone className="h-4 w-4" />
+                                <span>{ong.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Mail className="h-4 w-4" />
+                                <span>{ong.email}</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -119,7 +120,7 @@ export default function OngsPage() {
             {/* Mensagem quando não há resultados */}
             {ongs.length === 0 && !loading && (
                 <div className="text-center text-muted-foreground py-12">
-                    <p>Nenhuma ONG encontrada. Tente buscar em outra cidade.</p>
+                    <p>Nenhuma ONG encontrada. Tente ajustar sua busca.</p>
                 </div>
             )}
         </main>

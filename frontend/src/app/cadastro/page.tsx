@@ -61,9 +61,13 @@ export default function CadastroPage() {
 
             toast.success("Cadastro realizado com sucesso!")
             router.push("/login")
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Erro ao cadastrar:", error)
-            toast.error(error.response?.data?.message || "Erro ao cadastrar. Tente novamente.")
+            if (error instanceof Error) {
+                toast.error(error.message || "Erro ao cadastrar. Tente novamente.")
+            } else {
+                toast.error("Erro ao cadastrar. Tente novamente.")
+            }
         } finally {
             setLoading(false)
         }
