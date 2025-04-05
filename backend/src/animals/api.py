@@ -1,40 +1,35 @@
-# api/routers/animals.py
 from ninja import Router, ModelSchema, Field
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
-from .models import Animal, AnimalPhoto
+from .models import Animal, AnimalPhoto, Ong
 
 router = Router()
 
 class AnimalPhotoSchema(ModelSchema):
-    photo: str = Field(..., alias="URL da Foto")
-
     class Config:
         model = AnimalPhoto
         model_fields = ["photo"]
-        populate_by_name = True
+
+class OngSchema(ModelSchema):
+    class Config:
+        model = Ong
+        model_fields = [
+            "name", "address_line1", "address_number", "neighborhood", "city", "state", "postal_code", "phone", "email"
+        ]
 
 class AnimalSchema(ModelSchema):
-    name: str = Field(..., alias="Nome")
-    species: str = Field(..., alias="Espécie")
-    breed: str = Field(None, alias="Raça")
-    age: int = Field(..., alias="Idade")
-    description: str = Field(..., alias="Descrição")
-    is_adopted: bool = Field(..., alias="Adotado")
-    city: str = Field(None, alias="Cidade")
-    state: str = Field(None, alias="Estado")
-    photos: list[AnimalPhotoSchema] = Field(default_factory=list, alias="Fotos")
+    photos: list[AnimalPhotoSchema] = Field(default_factory=list)
+    ong: OngSchema = None
 
     class Config:
         model = Animal
         model_fields = [
             "name", "species", "breed", "age", "description", "is_adopted", "city", "state"
         ]
-        populate_by_name = True
 
-@router.get("/animals/", response=list[AnimalSchema], by_alias=True)
+@router.get("/animals/", response=list[AnimalSchema])
 def list_animals(request, city: str = None, state: str = None, lat: float = None, lon: float = None, radius: int = 10):
-    animals = Animal.objects.prefetch_related("photos").all()
+    animals = Animal.objects.select_related("ong").prefetch_related("photos").all()
     
     if city and state:
         animals = animals.filter(city__iexact=city, state__iexact=state)
@@ -44,8 +39,27 @@ def list_animals(request, city: str = None, state: str = None, lat: float = None
     
     return [
         {
-            **animal.__dict__,
-            "photos": [{"photo": photo.photo.url} for photo in animal.photos.all()]
+            "name": animal.name,
+            "species": animal.species,
+            "breed": animal.breed,
+            "age": animal.age,
+            "description": animal.description,
+            "is_adopted": animal.is_adopted,
+            "city": animal.city,
+            "state": animal.state,
+            "photos": [{"photo": photo.photo.url} for photo in animal.photos.all()],
+            "ong": {
+                "name": animal.ong.name,
+                "address_line1": animal.ong.address_line1,
+                "address_number": animal.ong.address_number,
+                "neighborhood": animal.ong.neighborhood,
+                "city": animal.ong.city,
+                "state": animal.ong.state,
+                "postal_code": animal.ong.postal_code,
+                "phone": animal.ong.phone,
+                "email": animal.ong.email,
+            } if animal.ong else None
         }
         for animal in animals
     ]
+
