@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Search, MapPin, PawPrint, Heart, Building2, Phone, Mail, ChevronDown } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Search, MapPin, PawPrint, Building2, Phone, Mail, ChevronDown } from "lucide-react"
 import { AnimalSchema } from "@/types/api"
 import api from "@/lib/axios"
 import { toast } from "sonner"
@@ -16,13 +15,38 @@ interface Location {
     lon: number
 }
 
-export default function AnimaisPage() {
+export default function PetsPage() {
     const [animais, setAnimais] = useState<AnimalSchema[]>([])
     const [cidade, setCidade] = useState("")
     const [estado, setEstado] = useState("")
     const [loading, setLoading] = useState(false)
     const [location, setLocation] = useState<Location | null>(null)
     const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+
+    const buscarAnimais = useCallback(async (location?: Location) => {
+        setLoading(true)
+        try {
+            const response = await api.get("/api/v1/animals/animals/", {
+                params: {
+                    city: cidade || undefined,
+                    state: estado || undefined,
+                    lat: location?.lat || undefined,
+                    lon: location?.lon || undefined,
+                    radius: 10 // Raio de 10km
+                }
+            })
+            setAnimais(response.data)
+        } catch (error: unknown) {
+            console.error("Erro ao buscar animais:", error)
+            if (error instanceof Error) {
+                toast.error(error.message || "Erro ao buscar animais. Tente novamente.")
+            } else {
+                toast.error("Erro ao buscar animais. Tente novamente.")
+            }
+        } finally {
+            setLoading(false)
+        }
+    }, [cidade, estado])
 
     useEffect(() => {
         if ("geolocation" in navigator) {
@@ -44,28 +68,7 @@ export default function AnimaisPage() {
                 }
             )
         }
-    }, [])
-
-    async function buscarAnimais(location?: Location) {
-        setLoading(true)
-        try {
-            const response = await api.get("/api/v1/animals/animals/", {
-                params: {
-                    city: cidade || undefined,
-                    state: estado || undefined,
-                    lat: location?.lat || undefined,
-                    lon: location?.lon || undefined,
-                    radius: 10 // Raio de 10km
-                }
-            })
-            setAnimais(response.data)
-        } catch (error: any) {
-            console.error("Erro ao buscar animais:", error)
-            toast.error(error.response?.data?.message || "Erro ao buscar animais. Tente novamente.")
-        } finally {
-            setLoading(false)
-        }
-    }
+    }, [buscarAnimais])
 
     const toggleCard = (animalId: string) => {
         setExpandedCards(prev => {
