@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  nextjs:
+    build: ./
+    env_file:
+      - .env
+    restart: always
+    environment:
+      - NODE_ENV=production
+    networks:
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      # Frontend Next.js rota principal
+      - "traefik.http.routers.nextjs.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`, `/api`, `/static`, `/media`)"
+      - "traefik.http.routers.nextjs.entrypoints=websecure"
+      - "traefik.http.routers.nextjs.tls=true"
+      - "traefik.http.routers.nextjs.tls.certresolver=letsencrypt"
+      - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
+      - "traefik.http.routers.nextjs.middlewares=gzip"
+      - "traefik.http.routers.nextjs.priority=10"
+      
+      # Redirecionamento HTTP → HTTPS
+      - "traefik.http.routers.nextjs-http.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`, `/api`, `/static`, `/media`)"
+      - "traefik.http.routers.nextjs-http.entrypoints=web"
+      - "traefik.http.routers.nextjs-http.middlewares=redirect-to-https"
+
+networks:
+  traefik_network:
+    external: true
