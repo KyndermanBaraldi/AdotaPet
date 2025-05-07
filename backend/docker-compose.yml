@@ -1,60 +1,6 @@
 version: '3.9'
 
 services:
-  traefik:
-    image: traefik:v2.11
-    container_name: traefik
-    restart: always
-    env_file:
-      - .env
-    command:
-      - "--global.checkNewVersion=true"
-      - "--global.sendAnonymousUsage=false"
-      - "--log.level=INFO"
-      - "--log.format=common"
-      - "--accesslog.format=common"
-      - "--api.dashboard=true"
-      - "--api.insecure=false"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/acme:/etc/traefik/acme
-    networks:
-      - traefik_network
-    labels:
-      - "traefik.enable=true"
-
-      # Painel Traefik (opcional)
-      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
-      - "traefik.http.routers.dashboard.service=api@internal"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
-      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.dashboard.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_USER}:${TRAEFIK_DASHBOARD_PASSWORD_HASH}"
-
-
-      # Redireciona tudo, exceto /admin, /api, /static e /media
-      - "traefik.http.routers.vercel-redirect.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`, `/api`, `/static`, `/media`)"
-      - "traefik.http.routers.vercel-redirect.entrypoints=websecure"
-      - "traefik.http.routers.vercel-redirect.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.vercel-redirect.priority=1"
-      - "traefik.http.routers.vercel-redirect.middlewares=vercel-redirect"
-
-      # Middleware para redirecionar mantendo o caminho
-      - "traefik.http.middlewares.vercel-redirect.redirectregex.regex=^https://[^/]+(/.*)"
-      - "traefik.http.middlewares.vercel-redirect.redirectregex.replacement=https://adota-pet-eta.vercel.app/$${1}"
-      - "traefik.http.middlewares.vercel-redirect.redirectregex.permanent=true"
-
   django:
     build: ./
     env_file:
@@ -137,7 +83,7 @@ services:
 
 networks:
   traefik_network:
-    driver: bridge
+    external: true
 
 volumes:
   postgres_data:
