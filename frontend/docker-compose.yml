@@ -10,22 +10,36 @@ services:
       - NODE_ENV=production
     networks:
       - traefik_network
+
     labels:
       - "traefik.enable=true"
-      # Frontend Next.js rota principal
+
+      ## Router para os assets internos do Next.js (/ _next)
+      - "traefik.http.routers.nextjs-assets.rule=Host(`${DOMAIN}`) && PathPrefix(`/_next`)"
+      - "traefik.http.routers.nextjs-assets.entrypoints=websecure"
+      - "traefik.http.routers.nextjs-assets.tls=true"
+      - "traefik.http.routers.nextjs-assets.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.nextjs-assets.priority=50"
+      - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
+      - "traefik.http.routers.nextjs-assets.middlewares=gzip"
+
+      ## Router catch-all para todas as outras rotas Next.js
       - "traefik.http.routers.nextjs.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`, `/api`, `/static`, `/media`)"
       - "traefik.http.routers.nextjs.entrypoints=websecure"
       - "traefik.http.routers.nextjs.tls=true"
       - "traefik.http.routers.nextjs.tls.certresolver=letsencrypt"
-      - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
-      - "traefik.http.routers.nextjs.middlewares=gzip"
       - "traefik.http.routers.nextjs.priority=10"
-      
-      # Redirecionamento HTTP → HTTPS
+      - "traefik.http.routers.nextjs.middlewares=gzip"
+
+      ## Redirecionamento HTTP → HTTPS para assets
+      - "traefik.http.routers.nextjs-assets-http.rule=Host(`${DOMAIN}`) && PathPrefix(`/_next`)"
+      - "traefik.http.routers.nextjs-assets-http.entrypoints=web"
+      - "traefik.http.routers.nextjs-assets-http.middlewares=redirect-to-https"
+
+      ## Redirecionamento HTTP → HTTPS catch-all
       - "traefik.http.routers.nextjs-http.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`, `/api`, `/static`, `/media`)"
       - "traefik.http.routers.nextjs-http.entrypoints=web"
       - "traefik.http.routers.nextjs-http.middlewares=redirect-to-https"
-
 networks:
   traefik_network:
     external: true

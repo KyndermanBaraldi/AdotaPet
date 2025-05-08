@@ -54,3 +54,6 @@ class OngAdmin(admin.ModelAdmin):
         if not request.user.is_superuser:
             obj.user = request.user  # Atribui o usuário ativo à ONG
         super().save_model(request, obj, form, change)
+    
+    class Media:
+        js = ('js/cep_autofill.js',)
