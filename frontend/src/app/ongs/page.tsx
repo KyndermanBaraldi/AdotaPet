@@ -1,26 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Search, MapPin, Mail, Phone } from "lucide-react"
+import { MapPin, Mail, Phone } from "lucide-react"
 import { OngSchema } from "@/types/api"
 import api from "@/lib/axios"
 import { toast } from "sonner"
+import { LocationSelector } from "@/components/LocationSelector"
 
 export default function OngsPage() {
     const [ongs, setOngs] = useState<OngSchema[]>([])
-    const [cidade, setCidade] = useState("")
-    const [estado, setEstado] = useState("")
     const [loading, setLoading] = useState(false)
 
-    async function buscarOngs() {
-        if (!cidade || !estado) {
-            toast.error("Por favor, preencha a cidade e o estado.")
-            return
-        }
-
+    async function buscarOngs(estado: string, cidade: string) {
         setLoading(true)
         try {
             const response = await api.get("/api/v1/ongs/ongs/", {
@@ -30,6 +22,13 @@ export default function OngsPage() {
                 }
             })
             setOngs(response.data)
+            
+            // Mensagem de sucesso com contagem
+            if (response.data.length > 0) {
+                toast.success(`${response.data.length} ONGs encontradas!`)
+            } else {
+                toast.info("Nenhuma ONG encontrada para esta localização.")
+            }
         } catch (error: unknown) {
             console.error("Erro ao buscar ONGs:", error)
             if (error instanceof Error) {
@@ -46,45 +45,8 @@ export default function OngsPage() {
         <main className="container mx-auto px-4 py-8">
             <h1 className="text-4xl font-bold mb-8">Encontre uma ONG</h1>
 
-            {/* Seção de Busca */}
-            <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Cidade</label>
-                        <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Digite a cidade"
-                                value={cidade}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCidade(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Estado</label>
-                        <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Digite o estado (UF)"
-                                value={estado}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEstado(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex items-end">
-                        <Button
-                            onClick={buscarOngs}
-                            disabled={loading}
-                            className="flex-1"
-                        >
-                            <Search className="mr-2 h-4 w-4" />
-                            {loading ? "Buscando..." : "Buscar"}
-                        </Button>
-                    </div>
-                </div>
-            </div>
+            {/* Componente de seleção de localização */}
+            <LocationSelector onSearch={buscarOngs} isLoading={loading} />
 
             {/* Lista de ONGs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -125,4 +87,4 @@ export default function OngsPage() {
             )}
         </main>
     )
-} 
+}
