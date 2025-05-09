@@ -3,38 +3,38 @@
         const $state = $('#id_state');
         const $city = $('#id_city');
 
-        function loadCities(uf) {
+        function loadCities(uf, selectedCity = null) {
             if (!uf) {
-                $city.html('<option value="">---------</option>');
+                $city.empty().append('<option value="">---------</option>');
                 return;
             }
 
             const url = `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`;
 
-            $.getJSON(url, function(data) {
-                $city.html('');
-                $.each(data, function(index, item) {
-                    $city.append($('<option>', {
-                        value: item.nome,
-                        text: item.nome
-                    }));
+            $.get(url, function(data) {
+                $city.empty();
+                $city.append('<option value="">---------</option>');
+                data.forEach(city => {
+                    const option = $('<option></option>').val(city.nome).text(city.nome);
+                    if (selectedCity && selectedCity === city.nome) {
+                        option.attr('selected', 'selected');
+                    }
+                    $city.append(option);
                 });
-
-                // Se o campo já tem valor (em edição), seleciona-o
-                const selected = $city.attr("data-selected");
-                if (selected) {
-                    $city.val(selected);
-                }
             });
         }
 
-        $state.change(function() {
-            loadCities($(this).val());
-        });
+        const initialUF = $state.val();
+        const initialCity = $city.val();
 
-        // Se já tem estado (em modo edição), carrega as cidades
-        if ($state.val()) {
-            loadCities($state.val());
+        if (initialUF) {
+            loadCities(initialUF, initialCity);
         }
+
+        $state.change(function() {
+            const selectedUF = $(this).val();
+            loadCities(selectedUF);
+        });
     });
 })(django.jQuery);
+
