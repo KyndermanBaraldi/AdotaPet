@@ -64,3 +64,12 @@ class AnimalAdmin(LeafletGeoAdmin):
         if obj is None:
             return True
         return obj.ong.user == request.user or request.user.is_superuser
+   
+    class Media:
+        js = ("js/animal_ibge.js",)
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        formfield = super().formfield_for_dbfield(db_field, **kwargs)
+        if db_field.name == 'city':
+            formfield.widget.attrs['data-selected'] = formfield.initial or ''
+        return formfield
