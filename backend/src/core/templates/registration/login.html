@@ -1,0 +1,29 @@
+{% extends "admin/login.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<!-- Tailwind via CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+  <!-- Navbar personalizada -->
+  <nav class="border-b relative bg-white">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 text-gray-900 hover:text-black">
+        <!-- Use um SVG real ou substitua pelo logo -->
+        <span class="text-2xl">🐾</span>
+        <span class="text-xl font-bold">Adote um Pet</span>
+      </a>
+      <div class="hidden md:flex items-center gap-4">
+        <a href="/ongs" class="px-4 py-2 text-gray-700 hover:text-black">ONGs</a>
+        <a href="/pets" class="px-4 py-2 text-gray-700 hover:text-black">Pets</a>
+        <a href="/cadastro" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Cadastre-se</a>
+        <a href="/login" class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-100">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Formulário original -->
+  {{ block.super }}
+{% endblock %}

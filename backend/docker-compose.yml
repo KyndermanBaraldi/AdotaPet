@@ -71,6 +71,7 @@ services:
     volumes:
       - static_volume:/usr/share/nginx/html/static
       - media_volume:/usr/share/nginx/html/media
+      - ./src/static/js:/usr/share/nginx/html/static/js
     networks:
       - traefik_network
     labels:

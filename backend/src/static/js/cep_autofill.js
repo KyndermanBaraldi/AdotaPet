@@ -1,25 +1,34 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const cepInput = document.querySelector('#id_postal_code');
+document.addEventListener("DOMContentLoaded", function () {
+    const cepInput = document.querySelector("#id_postal_code");
 
     if (cepInput) {
-        cepInput.addEventListener('blur', function () {
-            const cep = cepInput.value.replace(/\D/g, '');
+        cepInput.addEventListener("blur", function () {
+            const cep = cepInput.value.replace(/\D/g, "");
+            if (cep.length !== 8) return;
 
-            if (cep.length === 8) {
-                fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.erro) {
-                            document.querySelector('#id_address_line1').value = data.logradouro || '';
-                            document.querySelector('#id_neighborhood').value = data.bairro || '';
-                            document.querySelector('#id_city').value = data.localidade || '';
-                            document.querySelector('#id_state').value = data.uf || '';
-                        } else {
-                            alert('CEP não encontrado.');
-                        }
-                    })
-                    .catch(() => alert('Erro ao buscar o endereço.'));
-            }
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.erro) return;
+
+                    const addressField = document.querySelector("#id_address_line1");
+                    const neighborhoodField = document.querySelector("#id_neighborhood");
+                    const cityField = document.querySelector("#id_city");
+                    const stateField = document.querySelector("#id_state");
+                    const numberField = document.querySelector("#id_address_number");
+
+                    if (addressField) addressField.value = data.logradouro || "";
+                    if (neighborhoodField) neighborhoodField.value = data.bairro || "";
+                    if (cityField) cityField.value = data.localidade || "";
+                    if (stateField) stateField.value = data.uf || "";
+
+                    // Move o foco para o campo de número
+                    if (numberField) numberField.focus();
+                })
+                .catch((error) => {
+                    console.error("Erro ao buscar o CEP:", error);
+                });
         });
     }
 });
+
