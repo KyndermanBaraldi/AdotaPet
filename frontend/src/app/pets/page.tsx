@@ -114,7 +114,7 @@ export default function PetsPage() {
                                 <div className="relative h-48 w-full">
                                     {animal.photos && animal.photos[0]?.photo ? (
                                         <Image
-                                            src={animal.photos[0].photo}
+                                            src={animal.photos[0].photo.replace(/^http:\/\//i, 'https://')}
                                             alt={animal.name}
                                             fill
                                             className="object-cover rounded-t-lg"
