@@ -6,24 +6,73 @@
 <script src="https://cdn.tailwindcss.com"></script>
 {% endblock %}
 
-{% block content %}
-  <!-- Navbar personalizada -->
-  <nav class="border-b relative bg-white">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-2 text-gray-900 hover:text-black">
-        <!-- Use um SVG real ou substitua pelo logo -->
-        <span class="text-2xl">🐾</span>
-        <span class="text-xl font-bold">Adote um Pet</span>
-      </a>
-      <div class="hidden md:flex items-center gap-4">
-        <a href="/ongs" class="px-4 py-2 text-gray-700 hover:text-black">ONGs</a>
-        <a href="/pets" class="px-4 py-2 text-gray-700 hover:text-black">Pets</a>
-        <a href="/cadastro" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Cadastre-se</a>
-        <a href="/login" class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-100">Login</a>
-      </div>
-    </div>
-  </nav>
+{% block bodyclass %}login{% endblock %}
 
-  <!-- Formulário original -->
+{% block content_title %}{% endblock %}
+
+{% block content %}
   {{ block.super }}
 {% endblock %}
+
+{% block footer %}
+
+<!-- Navbar no topo -->
+<nav class="border-b relative">
+  <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2">
+      <!-- Ícone substituto (você pode usar outro SVG ou imagem) -->
+      <svg class="h-6 w-6 text-black" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M5 13l4 4L19 7" />
+      </svg>
+      <span class="text-xl font-bold">Adote um Pet</span>
+    </a>
+
+    <div class="md:hidden">
+      <button onclick="toggleMobileMenu()" class="text-gray-500 focus:outline-none">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="hidden md:flex items-center gap-4">
+      <a href="/ongs" class="hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background h-10 py-2 px-4">
+        ONGs
+      </a>
+      <a href="/pets" class="hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background h-10 py-2 px-4">
+        Pets
+      </a>
+      <a href="/cadastro" class="bg-indigo-600 text-white hover:bg-indigo-700 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background h-10 py-2 px-4">
+        Cadastre-se
+      </a>
+      <a href="/login" class="border border-input hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background h-10 py-2 px-4">
+        Login
+      </a>
+    </div>
+  </div>
+
+  <div id="mobileMenu" class="hidden absolute top-full left-0 w-full bg-white shadow-lg flex flex-col gap-4 p-4 md:hidden z-50">
+    <a href="/ongs" class="hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background h-10 py-2 px-4">
+      ONGs
+    </a>
+    <a href="/pets" class="hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background h-10 py-2 px-4">
+      Pets
+    </a>
+    <a href="/cadastro" class="bg-indigo-600 text-white hover:bg-indigo-700 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background h-10 py-2 px-4">
+      Cadastre-se
+    </a>
+    <a href="/login" class="border border-input hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background h-10 py-2 px-4">
+      Login
+    </a>
+  </div>
+</nav>
+
+<script>
+  function toggleMobileMenu() {
+    const menu = document.getElementById("mobileMenu");
+    menu.classList.toggle("hidden");
+  }
+</script>
+
+{% endblock %}
+
