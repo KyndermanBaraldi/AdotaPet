@@ -1,61 +1,184 @@
-{% extends "admin/login.html" %}
-{% load static %}
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
 
 {% block extrastyle %}
+  {{ block.super }}
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#4f46e5",
+            secondary: "#f3f4f6",
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    #header, #branding h1, .login #container {
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      max-width: none;
+    }
+    .login #container {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+    .errornote {
+      background-color: #ef4444;
+      color: white;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      margin-bottom: 1rem;
+    }
+  </style>
 {% endblock %}
 
-{% block bodyclass %}login{% endblock %}
+{% block bodyclass %}login bg-gray-50{% endblock %}
 
-{% block content_title %}{% endblock %}
+{% block branding %}{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block messages %}{% endblock %}
+{% block footer %}{% endblock %}
 
-{# Adicionamos a navbar antes do bloco content #}
-{% block usertools %}
-  <!-- Navbar no topo -->
-  <nav class="border-b fixed top-0 left-0 w-full bg-white z-50">
-    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-2">
-        <!-- Ícone substituto -->
-        <svg class="h-6 w-6 text-black" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M5 13l4 4L19 7" />
-        </svg>
-        <span class="text-xl font-bold">Adote um Pet</span>
-      </a>
-
-      <div class="md:hidden">
-        <button onclick="toggleMobileMenu()" class="text-gray-500 focus:outline-none">
-          <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+{% block content %}
+<!-- Navbar -->
+<header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex">
+        <div class="flex-shrink-0 flex items-center">
+          <a href="/" class="flex items-center gap-2">
+            <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span class="text-xl font-bold text-gray-900">Adote um Pet</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Desktop menu -->
+      <div class="hidden md:ml-6 md:flex md:items-center md:space-x-4">
+        <a href="/ongs" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">ONGs</a>
+        <a href="/pets" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Pets</a>
+        <a href="/cadastro" class="bg-primary text-white hover:bg-indigo-700 px-4 py-2 rounded-md text-sm font-medium">Cadastre-se</a>
+      </div>
+      
+      <!-- Mobile menu button -->
+      <div class="flex items-center md:hidden">
+        <button type="button" onclick="toggleMobileMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none">
+          <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </div>
-
-      <div class="hidden md:flex items-center gap-4">
-        <a href="/ongs" class="hover:bg-accent px-4 py-2 rounded-md text-sm">ONGs</a>
-        <a href="/pets" class="hover:bg-accent px-4 py-2 rounded-md text-sm">Pets</a>
-        <a href="/cadastro" class="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-md text-sm">Cadastre-se</a>
-        <a href="/login" class="border px-4 py-2 rounded-md text-sm hover:bg-accent">Login</a>
-      </div>
     </div>
-
-    <div id="mobileMenu" class="hidden absolute top-full left-0 w-full bg-white shadow-lg flex flex-col gap-4 p-4 md:hidden z-50">
-      <a href="/ongs" class="px-4 py-2">ONGs</a>
-      <a href="/pets" class="px-4 py-2">Pets</a>
-      <a href="/cadastro" class="bg-indigo-600 text-white px-4 py-2 rounded-md">Cadastre-se</a>
-      <a href="/login" class="border px-4 py-2 rounded-md">Login</a>
-    </div>
-  </nav>
-  {{ block.super }}
-{% endblock %}
-
-{% block content %}
-  <!-- Adicionamos um padding-top para o conteúdo não ficar sob a navbar -->
-  <div class="pt-20">
-    {{ block.super }}
   </div>
+  
+  <!-- Mobile menu -->
+  <div id="mobileMenu" class="hidden md:hidden">
+    <div class="pt-2 pb-3 space-y-1">
+      <a href="/ongs" class="text-gray-600 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">ONGs</a>
+      <a href="/pets" class="text-gray-600 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">Pets</a>
+      <a href="/cadastro" class="bg-primary text-white block px-3 py-2 rounded-md text-base font-medium">Cadastre-se</a>
+    </div>
+  </div>
+</header>
+
+<!-- Login Container -->
+<div class="min-h-screen flex items-center justify-center pt-16">
+  <div class="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg">
+    <div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Login Administrativo</h2>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        Entre com suas credenciais para acessar o painel administrativo
+      </p>
+    </div>
+    
+    {% if form.errors %}
+      <div class="rounded-md bg-red-50 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              {% if form.errors.items|length == 1 %}{% translate "Por favor, corrija o erro abaixo." %}{% else %}{% translate "Por favor, corrija os erros abaixo." %}{% endif %}
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul class="list-disc pl-5 space-y-1">
+                {% for field, errors in form.errors.items %}
+                  {% for error in errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+                
+                {% for error in form.non_field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    
+    <form class="mt-8 space-y-6" action="{{ app_path }}" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      
+      <div class="rounded-md shadow-sm -space-y-px">
+        <div>
+          <label for="id_username" class="sr-only">{{ form.username.label }}</label>
+          <input id="id_username" name="username" type="text" autocomplete="username" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" placeholder="Usuário">
+        </div>
+        <div>
+          <label for="id_password" class="sr-only">{{ form.password.label }}</label>
+          <input id="id_password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" placeholder="Senha">
+        </div>
+      </div>
+
+      {% url 'admin_password_reset' as password_reset_url %}
+      {% if password_reset_url %}
+      <div class="text-sm">
+        <a href="{{ password_reset_url }}" class="font-medium text-primary hover:text-indigo-500">
+          {% translate 'Esqueceu sua senha?' %}
+        </a>
+      </div>
+      {% endif %}
+
+      <div>
+        <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+            <svg class="h-5 w-5 text-indigo-300 group-hover:text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+            </svg>
+          </span>
+          {% translate 'Entrar' %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block extrahead %}
+  {{ block.super }}
   <script>
     function toggleMobileMenu() {
       const menu = document.getElementById("mobileMenu");
