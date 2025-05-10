@@ -31,7 +31,7 @@ export function Navbar() {
           <Button variant="ghost" asChild>
             <Link href="/pets">Pets</Link>
           </Button>
-          <Button asChild>
+          <Button variant="default" className="bg-indigo-600 text-white hover:bg-indigo-700" asChild>
             <Link href="/cadastro">Cadastre-se</Link>
           </Button>
           <Button variant="outline" asChild>
@@ -52,7 +52,7 @@ export function Navbar() {
               Pets
             </Link>
           </Button>
-          <Button asChild>
+          <Button variant="default" className="bg-indigo-600 text-white hover:bg-indigo-700" asChild>
             <Link href="/cadastro" onClick={() => setIsOpen(false)}>
               Cadastre-se
             </Link>
