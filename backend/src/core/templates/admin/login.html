@@ -9,9 +9,10 @@
 
 {% block content_title %}{% endblock %}
 
-{% block content %}
+{# Adicionamos a navbar antes do bloco content #}
+{% block usertools %}
   <!-- Navbar no topo -->
-  <nav class="border-b relative mb-8">
+  <nav class="border-b fixed top-0 left-0 w-full bg-white z-50">
     <div class="container mx-auto px-4 py-4 flex items-center justify-between">
       <a href="/" class="flex items-center gap-2">
         <!-- Ícone substituto -->
@@ -44,9 +45,14 @@
       <a href="/login" class="border px-4 py-2 rounded-md">Login</a>
     </div>
   </nav>
-
-  <!-- Conteúdo do formulário de login padrão -->
   {{ block.super }}
+{% endblock %}
+
+{% block content %}
+  <!-- Adicionamos um padding-top para o conteúdo não ficar sob a navbar -->
+  <div class="pt-20">
+    {{ block.super }}
+  </div>
 {% endblock %}
 
 {% block extrahead %}
