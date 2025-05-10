@@ -6,7 +6,7 @@ import { MapPin, PawPrint, Building2, Phone, Mail, ChevronDown } from "lucide-re
 import { AnimalSchema } from "@/types/api"
 import api from "@/lib/axios"
 import { toast } from "sonner"
-import Image from "next/image"
+// import Image from "next/image"
 import { LocationSelector } from "@/components/LocationSelector" // Importe o componente
 
 interface Location {
@@ -113,11 +113,11 @@ export default function PetsPage() {
                             <CardHeader className="p-0">
                                 <div className="relative h-48 w-full">
                                     {animal.photos && animal.photos[0]?.photo ? (
-                                        <Image
+                                        <img
                                             src={animal.photos[0].photo.replace(/^http:\/\//i, 'https://')}
                                             alt={animal.name}
-                                            fill
-                                            className="object-cover rounded-t-lg"
+                                            // fill
+                                            className="w-full h-full object-cover rounded-t-lg"
                                         />
                                     ) : (
                                         <div className="h-full w-full bg-muted flex items-center justify-center rounded-t-lg">
